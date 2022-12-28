@@ -1,0 +1,67 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+  vars:
+    container_count: 2
+    default_container_name: docker
+    default_container_image: ubuntu
+    default_container_command: sleep 1
+
+  tasks:
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+
+    - name: Install required system packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+        state: latest
+        update_cache: true
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+
+    - name: Start docker.service
+      ansible.builtin.service:
+        name: docker.service
+        state: started
+        enabled: true
+
+    - name: Add adminstrator to docker group
+      user:
+        name: craig
+        groups: docker
+        append: yes
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.14.2/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 775
