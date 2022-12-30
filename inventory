@@ -1,2 +1,7 @@
 [all]
 localhost              ansible_connection=local
+
+#[dev]
+
+#[staging]
+#[production]
